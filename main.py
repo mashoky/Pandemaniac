@@ -80,7 +80,8 @@ def get_important(lst1, lst2, lst3):
     common = list(set(lst1) & set(lst2))
     final = list(set(common) | set(lst3))
     return list(set(final))
-    
+
+# Degree distance with threshold 2
 def degree_distance_centrality(num_seeds):
     G = nx.Graph()
 
@@ -103,10 +104,34 @@ def degree_distance_centrality(num_seeds):
             if n in max_nodes:
                 max_nodes.remove(n)             
     return seeds        
-    
+# Betweenness centrality distance with threshold 2
+def bet_distance_centrality(num_seeds):
+    G = nx.Graph()
+
+    for node in data:
+        for neighbor in data[node]:
+            G.add_edge(node,neighbor)
+    bet_cen = nx.betweenness_centrality(G)
+    num_check = num_seeds
+    while num_check < len(bet_cen) and num_check < 100 * num_seeds:
+        num_check *= 1.5
+    #print degrees
+    seeds = []
+    max_nodes = heapq.nlargest(int(num_check), bet_cen, key = bet_cen.get)
+    #print max_nodes
+    while len(seeds) < num_seeds:
+        seed = max_nodes[0]
+        seeds.append(seed)
+        max_nodes.remove(seed)
+        for n in G.neighbors(seed):
+            if n in max_nodes:
+                max_nodes.remove(n)             
+    return seeds       
     
 def get_seed_nodes(num_seeds):
     seeds = degree_distance_centrality(num_seeds)
+    print seeds
+    seeds = bet_distance_centrality(num_seeds)
     print seeds
     #max_nodes = bet_cen(num_seeds)
     #max_clo = clo_cen(num_seeds)
@@ -129,7 +154,7 @@ def main():
     data = json.loads(json_data)
 
 
-    get_seed_nodes(5)
+    get_seed_nodes(10)
 
 if __name__ == "__main__":
     main()
