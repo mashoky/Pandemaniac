@@ -3,10 +3,14 @@ import networkx as nx
 import random
 import heapq
 import matplotlib.pyplot as plt
-filename = r"C:\Users\manasa\Documents\Caltech\CS144\Pandemaniac\Pandemaniac\2.5.1.json"
-out_file = "C:\Users\manasa\Documents\Caltech\CS144\Pandemaniac\Pandemaniac\output.txt"
+from input_output import filename, out_file
+import random
+
+
 
 data = {}
+
+
 def bet_cen(num_seeds):
     G = nx.Graph()
 
@@ -35,6 +39,7 @@ def bet_cen(num_seeds):
     bet_cen = nx.betweenness_centrality(largest_component)
     max_nodes = heapq.nlargest(num_seeds, bet_cen, key = bet_cen.get)
     return max_nodes
+
     
 def clo_cen(num_seeds):
     G = nx.Graph()
@@ -50,6 +55,8 @@ def clo_cen(num_seeds):
     clo_cen = nx.closeness_centrality(largest_component)
     max_nodes = heapq.nlargest(num_seeds, clo_cen, key = clo_cen.get)
     return max_nodes
+
+
 def eig_cen(num_seeds):
     G = nx.Graph()
 
@@ -64,6 +71,7 @@ def eig_cen(num_seeds):
     eig_cen = nx.closeness_centrality(largest_component)
     max_nodes = heapq.nlargest(num_seeds, eig_cen, key = eig_cen.get)
     return max_nodes
+
     
 def avg_neigh_degree(num_seeds):
     G = nx.Graph()
@@ -75,35 +83,40 @@ def avg_neigh_degree(num_seeds):
         if G.degree(n):
             avg_deg[n] = float(sum(G.degree(i) for i in G[n]))/G.degree(n)
     return heapq.nlargest(num_seeds, avg_deg, key = avg_deg.get)
+
     
 def get_important(lst1, lst2, lst3):
     common = list(set(lst1) & set(lst2))
     final = list(set(common) | set(lst3))
     return list(set(final))
 
+
 # Degree distance with threshold 2
-def degree_distance_centrality(num_seeds):
+def degree_distance_centrality(num_seeds, threshold=2):
     G = nx.Graph()
 
     for node in data:
         for neighbor in data[node]:
             G.add_edge(node,neighbor)
     degrees = G.degree()
-    num_check = num_seeds
-    while num_check < len(degrees) and num_check < 100 * num_seeds:
-        num_check *= 1.5
+    # num_check = num_seeds
+    # while num_check < len(degrees) and num_check < 100 * num_seeds:
+    #     num_check *= 1.5
     #print degrees
     seeds = []
-    max_nodes = heapq.nlargest(int(num_check), degrees, key = degrees.get)
+    # max_nodes = heapq.nlargest(int(num_check), degrees, key = degrees.get)
+    max_nodes = sorted(degrees, None, degrees.get, reverse=True)
     #print max_nodes
     while len(seeds) < num_seeds:
-        seed = max_nodes[0]
+        seed = max_nodes[random.randint(0, 5)]
         seeds.append(seed)
         max_nodes.remove(seed)
-        for n in G.neighbors(seed):
+        for n in nx.single_source_shortest_path(G, seed, threshold - 1):
             if n in max_nodes:
                 max_nodes.remove(n)             
-    return seeds        
+    return seeds
+
+
 # Betweenness centrality distance with threshold 2
 def bet_distance_centrality(num_seeds):
     G = nx.Graph()
@@ -117,7 +130,7 @@ def bet_distance_centrality(num_seeds):
         num_check *= 1.5
     #print degrees
     seeds = []
-    max_nodes = heapq.nlargest(int(num_check), bet_cen, key = bet_cen.get)
+    max_nodes = heapq.nlargest(int(num_check), bet_cen, key=bet_cen.get)
     #print max_nodes
     while len(seeds) < num_seeds:
         seed = max_nodes[0]
@@ -127,12 +140,13 @@ def bet_distance_centrality(num_seeds):
             if n in max_nodes:
                 max_nodes.remove(n)             
     return seeds       
-    
+
+
 def get_seed_nodes(num_seeds):
-    seeds = degree_distance_centrality(num_seeds)
+    seeds = degree_distance_centrality(num_seeds, 3)
     print seeds
-    seeds = bet_distance_centrality(num_seeds)
-    print seeds
+    # seeds = bet_distance_centrality(num_seeds)
+    # print seeds
     #max_nodes = bet_cen(num_seeds)
     #max_clo = clo_cen(num_seeds)
     #max_eig = eig_cen(num_seeds)
@@ -146,6 +160,7 @@ def get_seed_nodes(num_seeds):
         for i in range(0,num_seeds):
             text_file.write(str(seeds[i]) + "\n")
     text_file.close()
+
 
 def main():
     global data
