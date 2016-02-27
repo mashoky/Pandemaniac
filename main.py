@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 from input_output import filename, out_file
 import random
 
-
-
 data = {}
 
 
@@ -17,21 +15,7 @@ def bet_cen(num_seeds):
     for node in data:
         for neighbor in data[node]:
             G.add_edge(node,neighbor)
-#    plt.figure(num=None, figsize=(20, 20), dpi=80)
-#    plt.axis('off')
-#    fig = plt.figure(1)
-#    pos = nx.spring_layout(G)
-#    nx.draw_networkx_nodes(G,pos)
-#    nx.draw_networkx_edges(G,pos)
-#    nx.draw_networkx_labels(G,pos)
-#
-#    cut = 1.00
-#    xmax = cut * max(xx for xx, yy in pos.values())
-#    ymax = cut * max(yy for xx, yy in pos.values())
-#    plt.xlim(0, xmax)
-#    plt.ylim(0, ymax)
-#
-#    plt.show(fig)
+            
     connected_components = list(nx.connected_component_subgraphs(G))
 
     largest_component = connected_components[0]
@@ -72,7 +56,7 @@ def eig_cen(num_seeds):
     max_nodes = heapq.nlargest(num_seeds, eig_cen, key = eig_cen.get)
     return max_nodes
 
-    
+# Compute importance of node based on the average degree of its neighbors
 def avg_neigh_degree(num_seeds):
     G = nx.Graph()
     avg_deg = {}
@@ -84,30 +68,31 @@ def avg_neigh_degree(num_seeds):
             avg_deg[n] = float(sum(G.degree(i) for i in G[n]))/G.degree(n)
     return heapq.nlargest(num_seeds, avg_deg, key = avg_deg.get)
 
-    
+# Get common nodes between 3 lists
 def get_important(lst1, lst2, lst3):
     common = list(set(lst1) & set(lst2))
     final = list(set(common) | set(lst3))
     return list(set(final))
 
 
-# Degree distance with threshold 2
+# Degree distance centrality algorithm
+# Adapted from "Improving detection of influential nodes in complex networks"
 def degree_distance_centrality(num_seeds, threshold=2):
     G = nx.Graph()
 
     for node in data:
         for neighbor in data[node]:
             G.add_edge(node,neighbor)
+    # Compute degree of all nodes in G
     degrees = G.degree()
-    # num_check = num_seeds
-    # while num_check < len(degrees) and num_check < 100 * num_seeds:
-    #     num_check *= 1.5
-    #print degrees
+
     seeds = []
-    # max_nodes = heapq.nlargest(int(num_check), degrees, key = degrees.get)
+
     max_nodes = sorted(degrees, None, degrees.get, reverse=True)
-    #print max_nodes
+    
     while len(seeds) < num_seeds:
+        # Randomness to allow for other teams selecting the same nodes in 
+        # competition
         seed = max_nodes[random.randint(0, 5)]
         seeds.append(seed)
         max_nodes.remove(seed)
@@ -117,7 +102,8 @@ def degree_distance_centrality(num_seeds, threshold=2):
     return seeds
 
 
-# Betweenness centrality distance with threshold 2
+# Betweenness centrality distance algorithm with threshold 2
+# similar to degree distance centrality algorithm
 def bet_distance_centrality(num_seeds):
     G = nx.Graph()
 
@@ -128,10 +114,10 @@ def bet_distance_centrality(num_seeds):
     num_check = num_seeds
     while num_check < len(bet_cen) and num_check < 100 * num_seeds:
         num_check *= 1.5
-    #print degrees
+
     seeds = []
     max_nodes = heapq.nlargest(int(num_check), bet_cen, key=bet_cen.get)
-    #print max_nodes
+
     while len(seeds) < num_seeds:
         seed = max_nodes[0]
         seeds.append(seed)
@@ -144,17 +130,13 @@ def bet_distance_centrality(num_seeds):
 
 def get_seed_nodes(num_seeds):
     seeds = degree_distance_centrality(num_seeds, 3)
-    print seeds
+    # Other measures of selecting seed nodes that we tried
     # seeds = bet_distance_centrality(num_seeds)
     # print seeds
     #max_nodes = bet_cen(num_seeds)
     #max_clo = clo_cen(num_seeds)
     #max_eig = eig_cen(num_seeds)
-    #print max_nodes
-    #print max_clo
-    #print max_eig
     #node_choices = get_important(max_nodes, max_clo, max_eig)
-    #print node_choices
     text_file = open(out_file, "w")
     for rnd in range(50):
         for i in range(0,num_seeds):
@@ -169,7 +151,7 @@ def main():
     data = json.loads(json_data)
 
 
-    get_seed_nodes(10)
+    get_seed_nodes(20)
 
 if __name__ == "__main__":
     main()
